@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>Vue Test</title>
+	<!-- Fonts -->
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+
+	<!-- Icons -->
+	<link href="assets/vendor/nucleo/css/nucleo.css" rel="stylesheet">
+	<link href="assets/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+	<link type="text/css" href="assets/css/argon.min.css" rel="stylesheet">
+	<link type="text/css" href="assets/css/animate.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+	<style type="text/css">
+	body,html{
+		height:100%;
+	}
+	.todo-wrapper{
+		
+	}
+	.todo-head{
+	}
+	.todo-body{
+		background-color: #172b4d;
+		color:white;
+	}
+	.todo-body ul{
+		list-style: none;
+		padding: 20px;
+		text-align: left;
+		color:white;
+	}
+	.todo-body ul li{
+		border-bottom: 1px dashed gray;
+		margin-bottom: 5px;
+	}
+	.todo-footer {
+		background: #182a50;
+		margin: 0px;
+		padding: 5px 0px 20px 0px;
+	}
+	.task-completed{
+		text-decoration: line-through;
+		color: #7080a2;
+	}
+	.no-tasks{
+		padding: 10px 0px;
+	}
+</style>
+</head>
+<body>
+
+	<div class="container h-100" id="app">
+		<div class="row justify-content-center align-items-center">
+			<div class="col-sm-12 col-md-6 mx-auto text-center todo-wrapper h-50">
+				<div class="todo-head">
+					<todo-head v-bind:tasks="todosList"></todo-head>
+				</div>
+				<div class="todo-body h-100">
+					<ul class="h-100" v-if="todosList.length>0">
+						<todo-item 
+						v-for="todo in todosList"
+						v-bind:todo="todo"
+						v-bind:key = "todo.id"
+						>
+						</todo-item>
+					</ul>
+					<div class="no-tasks animate tada" v-if="todosList.length==0">Add a Task Below.</div>
+				</div>
+			<div class="todo-footer row">
+				<div class="col-sm-12 col-md-12">
+					<div class="form-group">
+						<div class="input-group input-group-alternative mb-4">
+							<input class="form-control" placeholder="Add New Task" type="text" v-model="newitem" id="new-task" @keyup.enter="addNew">
+							<div class="input-group-append">
+								<span class="input-group-text"><i class="ni ni-bullet-list-67"></i></span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-12 col-md-12">
+					<button type="button" v-on:click="addNew" class="btn btn-sm btn-primary">Add New</button>
+					<button type="button" v-on:click="addNew" class="btn btn-sm btn-primary">Save Changes</button>
+				</div>
+			</div>
+		</div>   
+	</div>  
+</div>
+<!-- Core -->
+<script src="assets/vendor/jquery/jquery.min.js"></script>
+<script src="assets/vendor/popper/popper.min.js"></script>
+<script src="assets/vendor/bootstrap/bootstrap.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<!-- Theme JS -->
+<script src="assets/js/argon.min.js"></script>
+<script type="text/javascript">
+
+	Vue.component('todo-head',{
+		props: ['tasks'],
+		template: `<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+		<div class="container">
+		<a class="navbar-brand" href="#">TODO LIST</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-default" aria-controls="navbar-default" aria-expanded="false" aria-label="Toggle navigation">
+		</button>
+		<span class="badge badge-secondary">{{ tasks.length }}</span>
+		</div>
+		</nav>`
+	})
+
+	Vue.component('todo-item', {
+		props: ['todo'],
+		template: `
+		<li class="h-40 row animated fadeInUp" v-bind:class="{ 'task-completed' : todo.isCompleted }">
+		<div class="col-1 col-sm-1 col-md-1">{{ todo.id }}</div>
+		<div 
+		class="col-8 col-sm-8 col-md-8"> {{ todo.task }} </div>
+		<div class="col-6 col-sm-2 col-md-2 text-right"> <button v-on:click="onTaskDone(todo)" class="btn btn-primary btn-sm">done</button></div>
+		<div class="col-6 col-sm-1 col-md-1 text-left"> <button v-on:click="onTaskDelete(todo)" class="btn btn-danger btn-sm">X</button></div>
+		</li>`,
+		methods: {
+			onTaskClick: function(todo){
+				console.log(todo);
+			},
+			onTaskDone : function(todo){
+				todo.isCompleted = true;
+			},
+			onTaskDelete : function(todo){
+				this.$parent.todosList.splice(this.$parent.todosList.findIndex(function(i){
+					return i.id === todo.id;
+				}), 1);
+				this.renumberList(app.todosList);
+			}
+		}
+	})
+
+	var app = new Vue({
+		el: '#app',
+		data :{
+			newitem : '',
+			todosList:[]
+		},
+		methods: {
+			addNew : function(){
+				if(!this.valueExists(this.newitem)){
+					this.todosList.push({id: this.todosList.length+1, task: this.newitem, isCompleted: false});
+					this.newitem='';
+				}else{
+					swal({
+						title: "Brrrrr!",
+						text: "Its already in the list",
+						icon: "warning",
+						button: "Oh Okay!",
+					});
+				}
+			},
+			valueExists : function(value){
+				return this.todosList.some(function(el){
+					return el.task === value;
+				});
+			}
+		},
+		watch: {
+			todosList:{
+				handler: function(val,oldval){
+					var count=1;
+					val.forEach(function(x){
+						x.id = count++;
+					});
+				},
+				deep:true
+			}
+		}
+	});
+
+</script>
+</body>
+</html>
